@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const Product = require("./models/product");
@@ -5,7 +6,7 @@ const Product = require("./models/product");
 const app = express();
 app.use(express.json());
 
-mongoose.connect("mongodb://127.0.0.1:27017/ecommerceDB")
+mongoose.connect(process.env.MONGO_URI)
 .then(()=>console.log("MongoDB Connected"))
 .catch(err=>console.log(err));
 
@@ -13,17 +14,19 @@ app.get("/", (req,res)=>{
   res.send("E-commerce Catalog API Running");
 });
 
-// GET all products
 app.get("/products", async (req,res)=>{
-  try{
-    const products = await Product.find();
-    res.json(products);
-  }
-  catch(err){
-    res.status(500).json({error: err.message});
-  }
+  const products = await Product.find();
+  res.json(products);
 });
 
-app.listen(3000, ()=>{
-  console.log("Server running on port 3000");
+app.post("/products", async (req,res)=>{
+  const product = new Product(req.body);
+  await product.save();
+  res.json(product);
+});
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, ()=>{
+  console.log("Server running");
 });
